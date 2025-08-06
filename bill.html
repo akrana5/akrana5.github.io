@@ -143,18 +143,36 @@ function calculateTotals() {
 }
 
 function downloadPDF() {
-    // Clone the bill content
     const original = document.getElementById("billContent");
     const clone = original.cloneNode(true);
 
-    // Replace all inputs in the clone with text
-    const inputs = clone.querySelectorAll("input");
-    inputs.forEach(input => {
-        const text = document.createElement("span");
-        text.textContent = input.value || "";
-        text.style.display = "inline-block";
-        text.style.minWidth = "60px";
-        input.parentNode.replaceChild(text, input);
+    // Replace input fields with plain text and calculate total per row
+    const rows = clone.querySelectorAll("tbody tr");
+    rows.forEach(row => {
+        const cells = row.querySelectorAll("td");
+
+        // Convert each input to text
+        cells.forEach(cell => {
+            const input = cell.querySelector("input");
+            if (input) {
+                const text = document.createElement("span");
+                text.textContent = input.value || "";
+                text.style.display = "inline-block";
+                text.style.minWidth = "60px";
+                cell.replaceChild(text, input);
+            }
+        });
+
+        // Now calculate and set the Total column
+        const areaCell = cells[2]?.textContent.trim();
+        const unitPriceCell = cells[3]?.textContent.trim();
+        const totalCell = cells[4];
+
+        const area = parseFloat(areaCell) || 0;
+        const unitPrice = parseFloat(unitPriceCell) || 0;
+        const total = (area * unitPrice).toFixed(2);
+
+        totalCell.textContent = total;
     });
 
     // Remove delete buttons
