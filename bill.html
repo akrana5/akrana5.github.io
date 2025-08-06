@@ -1,199 +1,141 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Furniture Work Bill Generator</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            margin: 30px;
-            background: #f4f4f4;
-        }
-        .container {
-            background: white;
-            padding: 20px 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        input {
-            padding: 6px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        table th, table td {
-            border: 1px solid #ccc;
-            padding: 8px;
-        }
-        table th {
-            background-color: #eee;
-        }
-        .btn {
-            padding: 8px 14px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            margin-top: 15px;
-            cursor: pointer;
-        }
-        .btn-danger {
-            background: #dc3545;
-        }
-        .btn:hover {
-            opacity: 0.9;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Furniture Bill</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #999;
+      padding: 8px;
+      text-align: center;
+    }
+    .btn {
+      padding: 8px 12px;
+      margin: 10px 0;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    input {
+      width: 100%;
+      border: none;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container" id="billContent">
-    <h2>Rana Wood Works, Vapi</h2>
+<div id="billContent">
+  <h2>Rana Wood Works, Vapi</h2>
     <h2>Prop - Lalu Rana</h2>
-    <h2>Phone - 6200421418</h2>
-    <h3>Address - Vapi, Gujarat</h3>
-
-    <label>Client Name:</label>
-    <input type="text" id="clientName" placeholder="e.g., Mr. Sharma" />
-    &nbsp;&nbsp;
-    <label>Date:</label>
-    <input type="date" id="billDate" />
-    
-    <table id="billTable">
-        <thead>
-            <tr>
-                <th>S.No.</th>
-                <th>Description</th>
-                <th>Area (sq. ft)</th>
-                <th>Unit Price</th>
-                <th>Total</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="billBody">
-            <!-- Sample row -->
-            <tr>
-                <td>1</td>
-                <td><input type="text" class="desc" /></td>
-                <td><input type="number" class="area" oninput="calculateTotals()" /></td>
-                <td><input type="number" class="unit" oninput="calculateTotals()" /></td>
-                <td><input type="text" class="total" readonly /></td>
-                <td><button class="btn btn-danger" onclick="removeRow(this)">❌</button></td>
-            </tr>
-        </tbody>
-    </table>
-
-    <button class="btn" onclick="addRow()">➕ Add Row</button>
-    <br><br>
-    <h3>Total Amount: ₹<span id="grandTotal">0.00</span></h3>
+<h2>Phone - 6200421418</h2>
+<h3>Address - Vapi, Gujarat</h3>
+  <table id="billTable">
+    <thead>
+      <tr>
+        <th>S.No.</th>
+        <th>Description</th>
+        <th>Area (sq. ft)</th>
+        <th>Unit Price</th>
+        <th>Total</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="lineItems">
+      <tr>
+        <td>1</td>
+        <td><input type="text" placeholder="Description" /></td>
+        <td><input type="number" oninput="calculateTotal(this)" /></td>
+        <td><input type="number" oninput="calculateTotal(this)" /></td>
+        <td class="totalCell">0.00</td>
+        <td><button onclick="deleteRow(this)">❌</button></td>
+      </tr>
+    </tbody>
+  </table>
+  <button class="btn" onclick="addRow()">+ Add Item</button>
 </div>
 
-<br>
-<button class="btn" onclick="downloadPDF()">📄 Download PDF</button>
+<button class="btn" onclick="downloadPDF()">Download PDF</button>
 
 <script>
 function addRow() {
-    const table = document.getElementById("billBody");
-    const rowCount = table.rows.length + 1;
+  const tbody = document.getElementById("lineItems");
+  const rowCount = tbody.rows.length;
+  const row = tbody.insertRow();
 
-    const row = table.insertRow();
-    row.innerHTML = `
-        <td>${rowCount}</td>
-        <td><input type="text" class="desc" /></td>
-        <td><input type="number" class="area" oninput="calculateTotals()" /></td>
-        <td><input type="number" class="unit" oninput="calculateTotals()" /></td>
-        <td><input type="text" class="total" readonly /></td>
-        <td><button class="btn btn-danger" onclick="removeRow(this)">❌</button></td>
-    `;
+  row.innerHTML = `
+    <td>${rowCount + 1}</td>
+    <td><input type="text" placeholder="Description" /></td>
+    <td><input type="number" oninput="calculateTotal(this)" /></td>
+    <td><input type="number" oninput="calculateTotal(this)" /></td>
+    <td class="totalCell">0.00</td>
+    <td><button onclick="deleteRow(this)">❌</button></td>
+  `;
 }
 
-function removeRow(button) {
-    const row = button.closest("tr");
-    row.remove();
-    updateSerials();
-    calculateTotals();
+function deleteRow(btn) {
+  const row = btn.closest("tr");
+  row.remove();
+  updateSno();
 }
 
-function updateSerials() {
-    const rows = document.querySelectorAll("#billBody tr");
-    rows.forEach((row, index) => {
-        row.cells[0].innerText = index + 1;
-    });
+function updateSno() {
+  const rows = document.querySelectorAll("#lineItems tr");
+  rows.forEach((row, index) => {
+    row.cells[0].textContent = index + 1;
+  });
 }
 
-function calculateTotals() {
-    let grandTotal = 0;
-    const rows = document.querySelectorAll("#billBody tr");
-    rows.forEach(row => {
-        const area = parseFloat(row.querySelector(".area")?.value || 0);
-        const unit = parseFloat(row.querySelector(".unit")?.value || 0);
-        const total = area * unit;
-        row.querySelector(".total").value = total.toFixed(2);
-        grandTotal += total;
-    });
-    document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
+function calculateTotal(input) {
+  const row = input.closest("tr");
+  const area = parseFloat(row.cells[2].querySelector("input").value) || 0;
+  const price = parseFloat(row.cells[3].querySelector("input").value) || 0;
+  row.cells[4].textContent = (area * price).toFixed(2);
 }
 
 function downloadPDF() {
-    const original = document.getElementById("billContent");
+  // Clone the content to avoid affecting the live DOM
+  const original = document.getElementById("billContent");
+  const clone = original.cloneNode(true);
 
-    // Clone only the inner HTML, including current form values
-    const clone = original.cloneNode(true);
+  // Convert all input fields to span with values
+  clone.querySelectorAll("input").forEach(input => {
+    const value = input.value;
+    const span = document.createElement("span");
+    span.textContent = value || "-";
+    input.parentNode.replaceChild(span, input);
+  });
 
-    // Replace all inputs in the clone with their values
-    const rows = clone.querySelectorAll("tbody tr");
-    rows.forEach(row => {
-        const cells = row.querySelectorAll("td");
+  // Remove action buttons
+  clone.querySelectorAll("button").forEach(btn => btn.remove());
 
-        let area = 0, unitPrice = 0;
+  // Create wrapper div to render properly
+  const wrapper = document.createElement("div");
+  wrapper.appendChild(clone);
+  document.body.appendChild(wrapper);
 
-        cells.forEach((cell, index) => {
-            const input = cell.querySelector("input");
-            if (input) {
-                const value = input.value || "";
-                const text = document.createElement("span");
-                text.textContent = value;
-                text.style.display = "inline-block";
-                text.style.minWidth = "60px";
-                cell.replaceChild(text, input);
+  const opt = {
+    margin:       0.5,
+    filename:     `Furniture-Bill-${new Date().toISOString().slice(0,10)}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
 
-                if (index === 2) area = parseFloat(value) || 0;
-                if (index === 3) unitPrice = parseFloat(value) || 0;
-            }
-        });
-
-        // Calculate and insert total
-        const total = (area * unitPrice).toFixed(2);
-        const totalCell = cells[4];
-        totalCell.textContent = total;
-    });
-
-    // Remove delete buttons
-    const buttons = clone.querySelectorAll("button");
-    buttons.forEach(btn => btn.remove());
-
-    // Create container and append clone for rendering
-    const container = document.createElement("div");
-    container.appendChild(clone);
-
-    // Generate PDF
-    const opt = {
-        margin:       0.5,
-        filename:     `Furniture-Bill-${new Date().toISOString().slice(0,10)}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().from(container).set(opt).save();
+  html2pdf().from(wrapper).set(opt).save().then(() => {
+    document.body.removeChild(wrapper); // clean up
+  });
 }
 </script>
 
